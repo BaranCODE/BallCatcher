@@ -9,8 +9,8 @@
 //
 // CREDITS:
 // - Created by BaranCODE
-// - OpenCV ball detection code courtesy of Shermal Fernando: http://opencv-srf.blogspot.com/2010/09/object-detection-using-color-seperation.html
-// - Triangulation method courtesy of ja72: http://stackoverflow.com/questions/10551555/need-an-algorithm-for-3d-vectors-intersection
+// - OpenCV ball detection code taken from Shermal Fernando: http://opencv-srf.blogspot.com/2010/09/object-detection-using-color-seperation.html
+// - Triangulation method taken from ja72: http://stackoverflow.com/questions/10551555/need-an-algorithm-for-3d-vectors-intersection
 /////////////////////////////////////////////////////////////////////////////
 
 
