@@ -6,6 +6,7 @@
 //
 // NOTES:
 // - A right-handed coordinate system is used.
+// - The ball moves along the X-axis
 //
 // CREDITS:
 // - Created by BaranCODE
@@ -34,18 +35,18 @@ public:
 	int lastX = -1;
 	int lastY = -1;
 	Mat imgLines;
-	int rot[3];
+	double rot[3];
 	Vector3d pos;
 	double planeDist;
 	double planeX;
 	double planeY;
-	double screenX;
-	double screenY;
+	int screenX;
+	int screenY;
 };
 
 Camera cameras[2];
 
-Vector3d catcherPos(0, 0, 0);
+Vector3d catcherPos(0, 0, 0); // TEMPORARY <----- TODO: REMOVE
 
 int minHue, maxHue, minSat, maxSat, minValue, maxValue;
 
@@ -56,9 +57,9 @@ Vector2d averageXY(0, 0);
 void setupScreen();
 void setupCamera(int i);
 Vector3d runCamera(int i);
-Vector3d rotateX(Vector3d v, int angle);
-Vector3d rotateY(Vector3d v, int angle);
-Vector3d rotateZ(Vector3d v, int angle);
+Vector3d rotateX(Vector3d v, double angle);
+Vector3d rotateY(Vector3d v, double angle);
+Vector3d rotateZ(Vector3d v, double angle);
 
 
 /////////////// CALIBRATION INSTRUCTIONS ///////////////
@@ -87,23 +88,23 @@ void loadSettings() {
 	//////// END OF CAMERA CALIB ////////
 
 	// Rotation of camera around axes X, Y, and Z, in that order.
-	// Default orientation is towards -Z, so that screen coordinates (X, Y) are consistent with world coordinates
+	// Default orientation is towards -Z, so that screen coordinates (X, Y) are consistent with world coordinates (+X -> right, +Y -> up)
 	cameras[0].rot[0] = 90;
 	cameras[0].rot[1] = 0;
-	cameras[0].rot[2] = 0;
+	cameras[0].rot[2] = 78.69006753;
 
-	cameras[1].rot[0] = 0;
+	cameras[1].rot[0] = 90;
 	cameras[1].rot[1] = 0;
-	cameras[1].rot[2] = 0;
+	cameras[1].rot[2] = 101.3099325;
 
 	// Position of camera in terms of X, Y, and Z (default position is origin) (in cm for consistency)
-	cameras[0].pos[0] = 0;
-	cameras[0].pos[1] = -500;
+	cameras[0].pos[0] = 500;
+	cameras[0].pos[1] = -100;
 	cameras[0].pos[2] = 0;
 
-	cameras[1].pos[0] = 0;
-	cameras[1].pos[1] = 0;
-	cameras[1].pos[2] = 500;
+	cameras[1].pos[0] = 500;
+	cameras[1].pos[1] = 100;
+	cameras[1].pos[2] = 0;
 
 	// Catcher position
 	catcherPos[0] = 500;
@@ -172,16 +173,17 @@ int main(int argc, char** argv)
 				Vector2d tmp(0, 0);
 				tmp[0] = p[0];
 				tmp[1] = p[1];
+				// Get vector from first detected point to last
 				averageXY = tmp - firstXY;
+				// Scale it so that X=1
 				averageXY = averageXY / averageXY[0];
 				float estY = (averageXY * catcherPos[0])[1];
 				cout << "ESTIMATED Y COORDINATE: " << estY << endl;
 			}
-
 			//////// END OF TRAJ ////////
 		}
 
-		if (lastTick != 0) cout << "FPS: " << 1000 / (float)(GetTickCount() - lastTick) << endl;
+		//if (lastTick != 0) cout << "FPS: " << 1000 / (float)(GetTickCount() - lastTick) << endl;
 		lastTick = GetTickCount();
 
 		if (waitKey(1) == 27){ // Wait for ESC key
@@ -267,22 +269,24 @@ Vector3d runCamera(int i) {
 		posX = posX - cameras[i].screenX;
 		posY = posY - cameras[i].screenY;
 
+		// Find X and Y components of direction vector
 		tmpV[0] = posX / cameras[i].screenX * cameras[i].planeX;
 		tmpV[1] = posY / cameras[i].screenY * cameras[i].planeY;
 	}
 
+	// Rotate direction vector according to the camera
 	tmpV = rotateX(tmpV, cameras[i].rot[0]);
 	tmpV = rotateY(tmpV, cameras[i].rot[1]);
 	tmpV = rotateZ(tmpV, cameras[i].rot[2]);
 
-	imshow("Thresholded " + std::to_string(i+1), imgThresholded);
+	imshow("Thresholded " + to_string(i+1), imgThresholded);
 	imgOriginal = imgOriginal + cameras[i].imgLines;
-	imshow("Original " + std::to_string(i+1), imgOriginal);
-
+	imshow("Original " + to_string(i+1), imgOriginal);
+	
 	return tmpV;
 }
 
-Vector3d rotateX(Vector3d v, int angle) {
+Vector3d rotateX(Vector3d v, double angle) {
 	Matrix3d m = Matrix3d::Identity();
 	m(1, 1) = cos(angle*M_PI / 180);
 	m(1, 2) = -sin(angle*M_PI / 180);
@@ -291,7 +295,7 @@ Vector3d rotateX(Vector3d v, int angle) {
 	return m*v;
 }
 
-Vector3d rotateY(Vector3d v, int angle) {
+Vector3d rotateY(Vector3d v, double angle) {
 	Matrix3d m = Matrix3d::Identity();
 	m(0, 0) = cos(angle*M_PI / 180);
 	m(0, 2) = sin(angle*M_PI / 180);
@@ -300,7 +304,7 @@ Vector3d rotateY(Vector3d v, int angle) {
 	return m*v;
 }
 
-Vector3d rotateZ(Vector3d v, int angle) {
+Vector3d rotateZ(Vector3d v, double angle) {
 	Matrix3d m = Matrix3d::Identity();
 	m(0, 0) = cos(angle*M_PI / 180);
 	m(0, 1) = -sin(angle*M_PI / 180);
