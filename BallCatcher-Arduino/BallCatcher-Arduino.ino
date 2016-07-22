@@ -20,6 +20,8 @@ String intDataY = "";
 
 int ch = 0;
 bool isX = true;
+
+long startCount = 0;
   
 void setup() {
   
@@ -28,10 +30,15 @@ void setup() {
   pinMode(stepX, OUTPUT);
   pinMode(directY, OUTPUT);
   pinMode(stepY, OUTPUT);
-  
- }
 
-void loop() {
+  while (true){
+    if (Serial.available() && Serial.readString().equals("ok")) break;
+    delay(10);
+  }
+  Serial.print("READY\n");
+}
+
+void loop() {  
   // put your main code here, to run repeatedly:
   if(Serial.available()!=0){
     isX = true;
@@ -67,6 +74,8 @@ void loop() {
     Serial.print("Y COORDINATE SET TO:");
     Serial.print(setY);
     Serial.print("\n");
+
+    startCount = 0;
   }
   
   if (abs(setX-xCoord) >0){
@@ -95,10 +104,11 @@ void loop() {
     digitalWrite(stepY, HIGH);
   }
 
-  
-  delay(1);
+  delayMicroseconds( 250*(1+7*pow(2,-startCount/50)) ); // speed ramp function
 
   digitalWrite(stepX, LOW);
   digitalWrite(stepY, LOW);
+
+  startCount++;
 }
 
