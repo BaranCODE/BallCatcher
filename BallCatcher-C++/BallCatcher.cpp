@@ -7,13 +7,6 @@
 // NOTES:
 // - A right-handed coordinate system is used.
 // - The ball moves along the X-axis
-//
-// CREDITS:
-// - Created by BaranCODE
-// - OpenCV ball detection code taken from Shermal Fernando: http://opencv-srf.blogspot.com/2010/09/object-detection-using-color-seperation.html
-// - Triangulation method taken from ja72: http://stackoverflow.com/questions/10551555/need-an-algorithm-for-3d-vectors-intersection
-// - Polynomial curve fitting code taken from Rosetta-Code: https://rosettacode.org/wiki/Polynomial_regression#C
-// - PS3 Eye camera code taken from CL sample: https://codelaboratories.com/research/view/cl-eye-platform-cpp-sample
 //////////////////////////////////////////////////////////////////////////////
 
 #include "Header.h"
