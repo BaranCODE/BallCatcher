@@ -77,18 +77,26 @@ public:
 		// Start capturing 
 		CLEyeCameraStart(_cam);
 		// image capturing loop 
-		Mat image;
 		while (_running)
 		{
 			cvGetImageRawData(pCapImage, &pCapBuffer);
 			CLEyeCameraGetFrame(_cam, pCapBuffer);
 			//cvShowImage(_windowName, pCapImage);
-			processCamera(_id, cv::cvarrToMat(pCapImage));
+			bool detected = processCamera(_id, cv::cvarrToMat(pCapImage));
 			if (_id == 1) {
 				fpsPrint();
-				if (dataCollectEnabled == 1) {
+				if (dataCollectEnabled == 1 && detected) {
 					triangulate();
 					trajectoryCalc();
+				}
+				else {
+					if (xCoords.size() > 0) {
+						xCoords.clear();
+						yCoords.clear();
+						zCoords.clear();
+						estXY[0] = 0;
+						estXY[1] = 0;
+					}
 				}
 			}
 		}

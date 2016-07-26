@@ -1,3 +1,5 @@
+// Taken from http://playground.arduino.cc/Interfacing/CPPWindows
+
 #include "SerialClass.h"
 
 Serial::Serial(char *portName)
@@ -26,7 +28,7 @@ Serial::Serial(char *portName)
 		}
 		else
 		{
-			printf("ERROR!!!");
+			printf("ERROR!\n");
 		}
 	}
 	else
@@ -43,7 +45,7 @@ Serial::Serial(char *portName)
 		else
 		{
 			//Define serial connection parameters for the arduino board
-			dcbSerialParams.BaudRate = CBR_9600;
+			dcbSerialParams.BaudRate = CBR_115200;
 			dcbSerialParams.ByteSize = 8;
 			dcbSerialParams.StopBits = ONESTOPBIT;
 			dcbSerialParams.Parity = NOPARITY;
@@ -142,3 +144,4 @@ bool Serial::IsConnected()
 	//Simply return the connection status
 	return this->connected;
 }
+

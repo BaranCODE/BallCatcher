@@ -1,3 +1,9 @@
+/////////////////////////////////////////////////////////////////////////////
+// BALL CATCHER
+// This program controls a 2 DOF Cartesian Coordinate robot with
+// values it receives from a computer over the serial connection.
+//////////////////////////////////////////////////////////////////////////////
+
 //Pins
 int directX = 8;
 int stepX = 9;
@@ -24,7 +30,6 @@ bool isX = true;
 long startCount = 0;
   
 void setup() {
-  
   Serial.begin(115200);
   pinMode(directX, OUTPUT);
   pinMode(stepX, OUTPUT);
@@ -32,15 +37,17 @@ void setup() {
   pinMode(stepY, OUTPUT);
 
   while (true){
-    if (Serial.available() && Serial.readString().equals("ok")) break;
-    delay(10);
+    if (Serial.available()){
+      ch = Serial.read();
+      if (ch == (int)'-') break; // check for priming character
+    }
+    delay(1);
   }
-  Serial.print("READY\n");
+  Serial.print("#"); // send response
 }
 
-void loop() {  
-  // put your main code here, to run repeatedly:
-  if(Serial.available()!=0){
+void loop() {
+  if(Serial.available()){
     isX = true;
     while (Serial.available()){
         ch = Serial.read();
@@ -62,23 +69,27 @@ void loop() {
     }
     intDataX.toCharArray(intBufferX, intDataX.length() + 1);
     intDataX = "";
-    setX = atoi(intBufferX);
+    setX = 2150 - atoi(intBufferX);
+
+    if (abs(setX-xCoord) < 40) setX = xCoord; // movement buffer
 
     intDataY.toCharArray(intBufferY, intDataY.length() + 1);
     intDataY = "";
-    setY = atoi(intBufferY);
+    setY = 1975 - atoi(intBufferY);
 
-    Serial.print("X COORDINATE SET TO:");
+    if (abs(setY-yCoord) < 40) setY = yCoord;
+
+    /*Serial.print("X COORDINATE SET TO:");
     Serial.print(setX);
     Serial.print("\n");
     Serial.print("Y COORDINATE SET TO:");
     Serial.print(setY);
-    Serial.print("\n");
+    Serial.print("\n");*/
 
     startCount = 0;
   }
   
-  if (abs(setX-xCoord) >0){
+  if (abs(setX-xCoord) > 0){
     if (setX-xCoord > 0){
       digitalWrite(directX, HIGH);
       xCoord++;
@@ -104,7 +115,8 @@ void loop() {
     digitalWrite(stepY, HIGH);
   }
 
-  delayMicroseconds( 250*(1+7*pow(2,-startCount/50)) ); // speed ramp function
+  delayMicroseconds( 250*(1+7*pow(2,-startCount/20)) ); // speed ramp function
+  //delayMicroseconds(1000);
 
   digitalWrite(stepX, LOW);
   digitalWrite(stepY, LOW);

@@ -13,13 +13,23 @@
 
 int main(int argc, char** argv)
 {
-	Serial* arduino = new Serial(port);
+	arduino = new Serial("COM4");
 
 	if (!arduino->IsConnected()) {
-		cout << "Could not connect to Arduino on " << port << endl;
-		Sleep(3000);
+		cout << "Could not connect to arduino!" << endl;
 		return -1;
 	}
+	cout << "Connected to arduino\nPriming..." << endl;
+
+	while (buffer[0] != '#') { // check for response
+		arduino->WriteData("-", 1); // send priming character
+		Sleep(100);
+		arduino->ReadData(buffer, 1);
+	}
+	strcpy(buffer, "");
+
+	cout << "Robot ready\nPreparing cameras..." << endl;
+
 
 	loadSettings();
 
@@ -36,18 +46,11 @@ int main(int argc, char** argv)
 	setupCamera(0);
 	setupCamera(1);
 
-	int key;
-	char *buffer = "";
-	while ((key = cvWaitKey(0)) != 0x1b) {
-		// The cameras do their thing in a separate thread
-		// Just send estimated X Y coordinates to Arduino here
-		if (estimated) {
-			sprintf(buffer, "%ix%i", estXY[0], estXY[1]);
-			arduino->WriteData(buffer, strlen(buffer));
-		}
-	}
+	cout << "Cameras ready" << endl;
 
-	arduino->~Serial();
+	int key;
+	while ((key = cvWaitKey(0)) != 0x1b) { }
+
 	for (int i = 0; i < numCams; i++)
 	{
 		cout << "Stopping capture on camera " << i + 1 << endl;

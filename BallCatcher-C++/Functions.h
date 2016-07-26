@@ -10,45 +10,52 @@
 // Values are configured below:
 void loadSettings() {
 	cameras[0].planeDist = 10;		// distance of camera from plane (in cm)
-	cameras[0].planeX = 12 / 2;		// observed width of plane / 2 (in cm)
-	cameras[0].planeY = 8 / 2;		// observed height of plane / 2 (in cm)
+	cameras[0].planeX = 7.7;		// observed width of plane / 2 (in cm)
+	cameras[0].planeY = 7.7;		// observed height of plane / 2 (in cm)
 	cameras[0].screenX = 640 / 2;	// horizontal resolution of camera / 2 (in pixels)
 	cameras[0].screenY = 480 / 2;	// vetical resolution of camera / 2 (in pixels)
 
 	cameras[1].planeDist = 10;
-	cameras[1].planeX = 12 / 2;
-	cameras[1].planeY = 8 / 2;
+	cameras[1].planeX = 7.7;
+	cameras[1].planeY = 7.7;
 	cameras[1].screenX = 640 / 2;
-	cameras[1].screenY = 360 / 2;
+	cameras[1].screenY = 480 / 2;
 	//////// END OF CAMERA CALIB ////////
 
 	// Rotation of camera around axes X, Y, and Z, in that order.
 	// Default orientation is towards -Z, so that screen coordinates (X, Y) are consistent with world coordinates (+X -> right, +Y -> up)
-	cameras[0].rot[0] = 90;
-	cameras[0].rot[1] = 0;
-	cameras[0].rot[2] = 78.69006753;
+	cameras[0].rot[0] = 180;
+	cameras[0].rot[1] = -45;
+	cameras[0].rot[2] = 0;
 
-	cameras[1].rot[0] = 90;
-	cameras[1].rot[1] = 0;
-	cameras[1].rot[2] = 101.3099325;
+	//cameras[0].rot2[1] = 56.5;
+	//cameras[0].rot2[2] = -33;
+
+	cameras[1].rot[0] = 0;
+	cameras[1].rot[1] = 135;
+	cameras[1].rot[2] = 0;
+
+	//cameras[1].rot2[1] = 56;
+	//cameras[1].rot2[2] = 31;
+
 
 	// Position of camera in terms of X, Y, and Z (default position is origin) (in cm for consistency)
-	cameras[0].pos[0] = 500;
-	cameras[0].pos[1] = -100;
-	cameras[0].pos[2] = 0;
+	cameras[0].pos[0] = 1;
+	cameras[0].pos[1] = -1.8;
+	cameras[0].pos[2] = -0.8;
 
-	cameras[1].pos[0] = 500;
-	cameras[1].pos[1] = 100;
-	cameras[1].pos[2] = 0;
+	cameras[1].pos[0] = 1;
+	cameras[1].pos[1] = 63;
+	cameras[1].pos[2] = -1;
 
 	// HSV threshold values (configurable via UI)
 	// TODO: Add config file for these <-------
-	minHue = 21;
-	maxHue = 61;
-	minSat = 173;
-	maxSat = 255;
-	minValue = 24;
-	maxValue = 140;
+	minHue = 100;
+	maxHue = 121;
+	minSat = 98;
+	maxSat = 183;
+	minValue = 57;
+	maxValue = 125;
 }
 
 void setupScreen() {
@@ -56,6 +63,7 @@ void setupScreen() {
 	namedWindow("Settings", 2);
 
 	createTrackbar("Enabled", "Settings", &dataCollectEnabled, 1);
+	createTrackbar("Demo Mode", "Settings", &demo, 1);
 
 	createTrackbar("Min Hue", "Settings", &minHue, 255); // Hue (0 - 255)
 	createTrackbar("Max Hue", "Settings", &maxHue, 255);
@@ -93,7 +101,8 @@ void setupCamera(int i) {
 	std::cout << "Camera #" << i + 1 << ", Height: " << imgTmp.size().height << ", Width: " << imgTmp.size().width << endl;*/
 }
 
-void processCamera(int i, Mat imgOriginal) {
+bool processCamera(int i, Mat imgOriginal) {
+	bool detected = false;
 	Mat imgThresholded;
 
 	/*if (!cameras[i].cam.read(imgOriginal)) {
@@ -122,26 +131,32 @@ void processCamera(int i, Mat imgOriginal) {
 	tmpV[2] = -cameras[i].planeDist;
 
 	// If Area <= 10000, assume there are no objects in image and it's due to noise
-	if (dArea > 10000) {
+	if (dArea > 5000) {
 		// Calculate position of ball
 		int posX = dM10 / dArea;
 		int posY = dM01 / dArea;
 
-		circle(imgOriginal, Point(posX, posY), 30, Scalar(0, 0, 255), -1);
+		circle(imgOriginal, Point(posX, posY), 10, Scalar(0, 0, 255), -1);
 
 		// Move origin to the middle of the screen
 		posX = posX - cameras[i].screenX;
 		posY = posY - cameras[i].screenY;
 
 		// Find X and Y components of direction vector
-		tmpV[0] = posX / cameras[i].screenX * cameras[i].planeX;
-		tmpV[1] = posY / cameras[i].screenY * cameras[i].planeY;
+		tmpV[0] = (double)posX / cameras[i].screenX * cameras[i].planeX;
+		tmpV[1] = (double)posY / cameras[i].screenY * cameras[i].planeY;
+
+		detected = true;
 	}
 
 	// Rotate direction vector according to the camera
 	tmpV = rotateX(tmpV, cameras[i].rot[0]);
 	tmpV = rotateY(tmpV, cameras[i].rot[1]);
 	tmpV = rotateZ(tmpV, cameras[i].rot[2]);
+	// Do another set of rotations (to make things easier for 2-piece cameras)
+	tmpV = rotateX(tmpV, cameras[i].rot2[0]);
+	tmpV = rotateY(tmpV, cameras[i].rot2[1]);
+	tmpV = rotateZ(tmpV, cameras[i].rot2[2]);
 
 	imshow("Thresholded " + to_string(i + 1), imgThresholded);
 	imshow("Original " + to_string(i + 1), imgOriginal);
@@ -149,10 +164,12 @@ void processCamera(int i, Mat imgOriginal) {
 	waitKey(1);
 
 	cameras[i].ballDir = tmpV;
+
+	return detected;
 }
 
 void fpsPrint() {
-	if (lastTick != 0) cout << "FPS: " << 1000 / (float)(GetTickCount() - lastTick) << endl;
+	if (lastTick != 0) cout << "\rFPS: " << 1000 / (float)(GetTickCount() - lastTick);
 	lastTick = GetTickCount();
 }
 
@@ -176,16 +193,30 @@ void triangulate() {
 	double d2 = (t2 - u*t1) / (u*u - 1);
 
 	Vector3d p = ((cameras[0].pos + d1 * v1) + (cameras[1].pos + d2 * v2)) / 2;
-	xCoords.push_back(p[0]);
-	yCoords.push_back(p[1]);
-	zCoords.push_back(p[2]);
-	//cout << "Point:\n" << p << endl;
+
+	double x = p[0];
+	double y = p[1];
+	double z = p[2];
+
+	//if (x > -100 && x < 50) {
+	xCoords.push_back(x);
+	yCoords.push_back(y);
+	zCoords.push_back(z);
+
+	if (demo == 1){
+		x -= minX; // Make coordinates relative to robot's range
+		y -= minY;
+		estXY[0] = (int)(x / 4.1 * 200); // 4.1 cm is the linear motion per revolution, and 200 the steps per revolution
+		estXY[1] = (int)(y / 4.0 * 200);
+		arduinoSend();
+		//cout << "X: " << x << "\nY: " << y << endl << endl;
+	}
 }
 
 void trajectoryCalc() {
 	// Use the ball's recorded positions to calculate
 	// its trajectory, and find where it will fall.
-	if (zCoords.size() >= 3) {
+	if (demo == 0 && zCoords.size() >= 3) {
 		polynomialfit(zCoords.size(), 3, &xCoords[0], &zCoords[0], XZcoeff);
 		// Solve equation for x: 0 = x*x*XZcoeff[2] + x*XZcoeff[1] + XZcoeff[0] - catcherHeight
 		double x = 0;
@@ -194,19 +225,36 @@ void trajectoryCalc() {
 			if (i == -1) x = tmpx;
 			else if (tmpx > x) x = tmpx;
 		}
-		cout << "X: " << x << endl;
+		if (isnan(x)) return;
 
 		polynomialfit(xCoords.size(), 2, &xCoords[0], &yCoords[0], XYcoeff);
 		// Solve equation for y (given x): y = mx + c
 		double y = XYcoeff[1] * x + XYcoeff[0];
-		cout << "Y: " << y << endl;
+		if (isnan(y)) return;
 
-		// TODO: Check for bounds !!!!!!!!!!!!!!!!
-		// TODO: Do conversion from coordinates to motor steps !!!!!!!!!!!!
-		estXY[0] = (int)x;
-		estXY[1] = (int)y;
-		estimated = true;
+		//cout << "X: " << x << endl;
+		//cout << "Y: " << y << endl;
+
+		// Convert linear coordinates to motor steps:
+		//if (x <= maxX && x >= minX && y <= maxY && y >= minY) {
+		x -= minX; // Make coordinates relative to robot's range
+		y -= minY;
+		cout << "ESTIMATED\n-------------\nX: " << x << "\nY: " << y << endl << endl;
+		estXY[0] = (int)(x / 4.1 * 200); // 4.1 cm is the linear motion per revolution, and 200 the steps per revolution
+		estXY[1] = (int)(y / 4.0 * 200);
+		arduinoSend();
+		//}
 	}
+}
+
+void arduinoSend() {
+	sprintf(buffer, "%ix%i", estXY[0], estXY[1]);
+	//cout << "X: " << sumXY[0] / xCoords.size() << "\nY: " << sumXY[1] / xCoords.size() << endl;
+	arduino->WriteData(buffer, strlen(buffer));
+	waitKey(1);
+	//arduino->ReadData(buffer, 255);
+	//if (buffer[0] != 0) cout << buffer;
+	strcpy(buffer, "");
 }
 
 Vector3d rotateX(Vector3d v, double angle) {
