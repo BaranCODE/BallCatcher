@@ -3,6 +3,12 @@ BallCatcher v1.0
 1) To use the program, unzip the archive file.
 2) Double-click on BallCatcher.exe
 
+REQUIREMENTS
+-------------------
+- You must own two PS3 Eye cameras
+- You must have purchased the "CL PS3 Eye Driver" and "CL PS3 Eye Multicam SDK"
+- You must have activated the webcams from the CL Multicam device manager by purchasing credits from CL (Code Laboratories)
+
 TROUBLESHOOTING
 -------------------
 If you get an error regarding the Visual Studio 14
