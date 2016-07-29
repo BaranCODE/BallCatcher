@@ -10,7 +10,7 @@ The Arduino code then takes the ball's estimated falling position from the C++ p
 Website: https://barancode.com/projects/catchbot/
 
 ####Note:
-The trajectory calculations (consisting of calculating the best fit curve through the triangulated coordinate data points, and extrapolating the fall position) don't work reliably. However, the triangulation code itself works reasonably well. Therefore a demo mode has been implemented (can be toggled from Settings window), in which the trajectory calculation code is disabled, and the robot is told to shadow the ball's movement. When the ball is thrown vertically (upwards) from next to the robot, with only small horizontal motions, the robot is able to catch the ball. For this configuration, the cameras must be facing upwards.
+The trajectory calculations (consisting of calculating the best fit curve through the triangulated coordinate data points, and extrapolating the fall position) don't work reliably. However, the triangulation code itself works reasonably well. Therefore a demo mode has been implemented (can be toggled from Settings window), in which the trajectory calculation code is disabled, and the robot is told to shadow the ball's movement. When the ball is thrown vertically (upwards) from next to the robot, with only small horizontal motions, the robot is able to catch the ball. For this configuration, the cameras must be facing upwards (instead of forward, as seen in the diagram).
 
 ##Credits:
 - Created by BaranCODE
