@@ -1,4 +1,4 @@
-# BallCatcher
+# Catch-Bot
 Software that powers a ball-catching robot. 
 
 The C++ code uses OpenCV to track a ball through multiple cameras, triangulates its position, and calculates its trajectory.
